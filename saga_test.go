@@ -3,7 +3,6 @@ package saga
 import (
 	"context"
 	"errors"
-	"github.com/itimofeev/go-saga"
 	"github.com/itimofeev/go-saga/storage/memory"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -44,7 +43,7 @@ func TestName(t *testing.T) {
 	DepositAccount := depositFunc
 	CompensateDeposit := deduceFunc
 
-	saga := saga.NewSEC(memory.New())
+	saga := NewSEC(memory.New())
 
 	saga.AddSubTxDef("deduce", DeduceAccount, CompensateDeduce).
 		AddSubTxDef("deposit", DepositAccount, CompensateDeposit)
@@ -71,7 +70,7 @@ func TestName2(t *testing.T) {
 	DepositAccount := errFunc
 	CompensateDeposit := deduceFunc
 
-	saga := saga.NewSEC(memory.New())
+	saga := NewSEC(memory.New())
 
 	saga.AddSubTxDef("deduce", DeduceAccount, CompensateDeduce).
 		AddSubTxDef("deposit", DepositAccount, CompensateDeposit)
