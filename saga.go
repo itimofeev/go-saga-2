@@ -11,7 +11,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/lysu/go-saga/storage"
+	"github.com/itimofeev/go-saga/storage"
 	"golang.org/x/net/context"
 	"log"
 	"os"
@@ -20,12 +20,6 @@ import (
 const LogPrefix = "saga_"
 
 var Logger *log.Logger
-var StorageConfig storage.StorageConfig
-var StorageProvider storage.StorageProvider
-
-func LogStorage() storage.Storage {
-	return StorageProvider(StorageConfig)
-}
 
 func init() {
 	Logger = log.New(os.Stdout, "[Saga]", log.LstdFlags)
@@ -42,14 +36,15 @@ type Saga struct {
 	logID   string
 	context context.Context
 	sec     *ExecutionCoordinator
+	storage storage.Storage
 }
 
 func (s *Saga) startSaga() {
-	log := &Log{
+	llog := &Log{
 		Type: SagaStart,
 		Time: time.Now(),
 	}
-	err := LogStorage().AppendLog(s.logID, log.mustMarshal())
+	err := s.storage.AppendLog(s.logID, llog.mustMarshal())
 	if err != nil {
 		panic("Add log Failure")
 	}
@@ -65,7 +60,7 @@ func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
 		Time:    time.Now(),
 		Params:  MarshalParam(s.sec, args),
 	}
-	err := LogStorage().AppendLog(s.logID, log.mustMarshal())
+	err := s.storage.AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
 		panic("Add log Failure")
 	}
@@ -86,7 +81,7 @@ func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
 		SubTxID: subTxID,
 		Time:    time.Now(),
 	}
-	err = LogStorage().AppendLog(s.logID, log.mustMarshal())
+	err = s.storage.AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
 		panic("Add log Failure")
 	}
@@ -99,11 +94,11 @@ func (s *Saga) EndSaga() {
 		Type: SagaEnd,
 		Time: time.Now(),
 	}
-	err := LogStorage().AppendLog(s.logID, log.mustMarshal())
+	err := s.storage.AppendLog(s.logID, log.mustMarshal())
 	if err != nil {
 		panic("Add log Failure")
 	}
-	err = LogStorage().Cleanup(s.logID)
+	err = s.storage.Cleanup(s.logID)
 	if err != nil {
 		panic("Clean up topic failure")
 	}
@@ -113,7 +108,7 @@ func (s *Saga) EndSaga() {
 // This method will stop continue sub-transaction and do Compensate for executed sub-transaction.
 // SubTx will call this method internal.
 func (s *Saga) Abort() {
-	logs, err := LogStorage().Lookup(s.logID)
+	logs, err := s.storage.Lookup(s.logID)
 	if err != nil {
 		panic("Abort Panic")
 	}
@@ -121,7 +116,7 @@ func (s *Saga) Abort() {
 		Type: SagaAbort,
 		Time: time.Now(),
 	}
-	err = LogStorage().AppendLog(s.logID, alog.mustMarshal())
+	err = s.storage.AppendLog(s.logID, alog.mustMarshal())
 	if err != nil {
 		panic("Add log Failure")
 	}
@@ -142,7 +137,7 @@ func (s *Saga) compensate(tlog Log) error {
 		SubTxID: tlog.SubTxID,
 		Time:    time.Now(),
 	}
-	err := LogStorage().AppendLog(s.logID, clog.mustMarshal())
+	err := s.storage.AppendLog(s.logID, clog.mustMarshal())
 	if err != nil {
 		panic("Add log Failure")
 	}
@@ -164,7 +159,7 @@ func (s *Saga) compensate(tlog Log) error {
 		SubTxID: tlog.SubTxID,
 		Time:    time.Now(),
 	}
-	err = LogStorage().AppendLog(s.logID, clog.mustMarshal())
+	err = s.storage.AppendLog(s.logID, clog.mustMarshal())
 	if err != nil {
 		panic("Add log Failure")
 	}

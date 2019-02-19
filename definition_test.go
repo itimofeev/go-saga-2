@@ -39,7 +39,7 @@ func TestMissFunc(t *testing.T) {
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				assert.Equal(t, "First argument must use SagaContext.", r)
+				assert.Equal(t, "First argument must use context.Context.", r)
 				return
 			}
 			assert.Fail(t, "It must be panic when use E function")

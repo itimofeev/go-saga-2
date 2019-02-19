@@ -2,7 +2,8 @@ package saga_test
 
 import (
 	"fmt"
-	"github.com/lysu/go-saga"
+	"github.com/itimofeev/go-saga"
+	"github.com/itimofeev/go-saga/storage/memory"
 	"golang.org/x/net/context"
 	"reflect"
 	"testing"
@@ -12,14 +13,16 @@ func Param1(ctx context.Context, name string, aga int) {
 	fmt.Printf("%s----%d\n", name, aga)
 }
 
+var sec = saga.NewSEC(memory.New())
+
 func initParam() {
-	saga.AddSubTxDef("param1", Param1, Param2)
+	sec.AddSubTxDef("param1", Param1, Param2)
 }
 
 func TestMarshalParam(t *testing.T) {
 	initParam()
-	pd := saga.MarshalParam(&saga.DefaultSEC, []interface{}{"a", 1})
-	rv := saga.UnmarshalParam(&saga.DefaultSEC, pd)
+	pd := saga.MarshalParam(sec, []interface{}{"a", 1})
+	rv := saga.UnmarshalParam(sec, pd)
 
 	p := []reflect.Value{}
 	p = append(p, reflect.ValueOf(context.Background()))
@@ -38,8 +41,8 @@ func Param2(ctx context.Context, name *string, aga int) {
 func TestMarshalPtr(t *testing.T) {
 	initParam()
 	x := "a"
-	pd := saga.MarshalParam(&saga.DefaultSEC, []interface{}{&x, 1})
-	rv := saga.UnmarshalParam(&saga.DefaultSEC, pd)
+	pd := saga.MarshalParam(sec, []interface{}{&x, 1})
+	rv := saga.UnmarshalParam(sec, pd)
 
 	p := []reflect.Value{}
 	p = append(p, reflect.ValueOf(context.Background()))

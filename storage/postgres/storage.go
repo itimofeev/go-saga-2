@@ -4,26 +4,16 @@ import (
 	"fmt"
 	"github.com/go-pg/pg"
 	"github.com/go-pg/pg/orm"
-	"github.com/lysu/go-saga"
-	"github.com/lysu/go-saga/storage"
-	"sync"
+	"github.com/itimofeev/go-saga/storage"
 	"time"
 )
 
-var storageInstance storage.Storage
-var rmdbInit sync.Once
-
-func init() {
-	saga.StorageProvider = func(cfg storage.StorageConfig) storage.Storage {
-		rmdbInit.Do(func() {
-			var err error
-			storageInstance, err = newRmdbStorage(cfg)
-			if err != nil {
-				panic(err)
-			}
-		})
-		return storageInstance
+func New() storage.Storage {
+	s, err := newRmdbStorage()
+	if err != nil {
+		panic(err)
 	}
+	return s
 }
 
 type rmdbStorage struct {
@@ -51,7 +41,7 @@ func (*hook) AfterQuery(*pg.QueryEvent) {
 }
 
 // newRmdbStorage creates log storage base on rmdb.
-func newRmdbStorage(cfg storage.StorageConfig) (storage.Storage, error) {
+func newRmdbStorage() (storage.Storage, error) {
 	opts, err := pg.ParseURL("postgresql://postgres:@db:5432/postgres?sslmode=disable")
 	if err != nil {
 		return nil, err

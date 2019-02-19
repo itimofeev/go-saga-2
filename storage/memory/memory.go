@@ -1,26 +1,16 @@
 package memory
 
 import (
+	"github.com/itimofeev/go-saga/storage"
 	"github.com/juju/errors"
-	"github.com/lysu/go-saga"
-	"github.com/lysu/go-saga/storage"
-	"sync"
 )
 
-var storageInstance storage.Storage
-var memoryInit sync.Once
-
-func init() {
-	saga.StorageProvider = func(cfg storage.StorageConfig) storage.Storage {
-		memoryInit.Do(func() {
-			var err error
-			storageInstance, err = newMemStorage()
-			if err != nil {
-				panic(err)
-			}
-		})
-		return storageInstance
+func New() storage.Storage {
+	s, err := newMemStorage()
+	if err != nil {
+		panic(err)
 	}
+	return s
 }
 
 type memStorage struct {
