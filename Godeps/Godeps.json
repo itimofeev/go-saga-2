@@ -1,0 +1,95 @@
+{
+	"ImportPath": "github.com/itimofeev/go-saga",
+	"GoVersion": "go1.11",
+	"GodepVersion": "v80",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg",
+			"Comment": "v7.1.7-6-g78bbbe6",
+			"Rev": "78bbbe65e3ad812784063e6a5a14b1e3e89d9433"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/internal",
+			"Comment": "v7.1.7-6-g78bbbe6",
+			"Rev": "78bbbe65e3ad812784063e6a5a14b1e3e89d9433"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/internal/iszero",
+			"Comment": "v7.1.7-6-g78bbbe6",
+			"Rev": "78bbbe65e3ad812784063e6a5a14b1e3e89d9433"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/internal/parser",
+			"Comment": "v7.1.7-6-g78bbbe6",
+			"Rev": "78bbbe65e3ad812784063e6a5a14b1e3e89d9433"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/internal/pool",
+			"Comment": "v7.1.7-6-g78bbbe6",
+			"Rev": "78bbbe65e3ad812784063e6a5a14b1e3e89d9433"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/internal/struct_filter",
+			"Comment": "v7.1.7-6-g78bbbe6",
+			"Rev": "78bbbe65e3ad812784063e6a5a14b1e3e89d9433"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/internal/tag",
+			"Comment": "v7.1.7-6-g78bbbe6",
+			"Rev": "78bbbe65e3ad812784063e6a5a14b1e3e89d9433"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/orm",
+			"Comment": "v7.1.7-6-g78bbbe6",
+			"Rev": "78bbbe65e3ad812784063e6a5a14b1e3e89d9433"
+		},
+		{
+			"ImportPath": "github.com/go-pg/pg/types",
+			"Comment": "v7.1.7-6-g78bbbe6",
+			"Rev": "78bbbe65e3ad812784063e6a5a14b1e3e89d9433"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/inflection",
+			"Rev": "04140366298a54a039076d798123ffa108fff46c"
+		},
+		{
+			"ImportPath": "github.com/juju/errors",
+			"Rev": "e65537c515d77e35697c471d6c2755375cb3adc4"
+		},
+		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Comment": "v1.0.0",
+			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.1.4-71-g890a5c3",
+			"Rev": "890a5c3458b43e6104ff5da8dfa139d013d77544"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/require",
+			"Comment": "v1.1.4-71-g890a5c3",
+			"Rev": "890a5c3458b43e6104ff5da8dfa139d013d77544"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/pbkdf2",
+			"Rev": "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
+		},
+		{
+			"ImportPath": "mellium.im/sasl",
+			"Comment": "v0.2.1-6-g80f447d",
+			"Rev": "80f447d8107c05f712682c349a26e081488de60c"
+		}
+	]
+}

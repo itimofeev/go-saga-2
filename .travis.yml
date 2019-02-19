@@ -1,0 +1,25 @@
+language: go
+
+go:
+  - 1.11.x
+
+services:
+  - postgresql
+
+env:
+  - DB_ADDR=postgresql://postgres@localhost:5432/travis_ci_test?sslmode=disable CODECOV_TOKEN="9b5d1a07-1641-4572-9ffd-d13342754cdf"
+
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
+
+before_install:
+  - go get github.com/tools/godep
+
+install:
+  - godep restore
+
+script:
+  - go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
