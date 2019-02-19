@@ -1,8 +1,4 @@
-# go-saga
-
-[![GoDoc](https://godoc.org/github.com/itimofeev/go-saga?status.svg)](https://godoc.org/github.com/itimofeev/go-saga)
-[![Build Status](https://travis-ci.org/lysu/go-saga.svg?branch=master)](https://travis-ci.org/lysu/go-saga)
-
+# go-saga [![Build Status](https://travis-ci.org/itimofeev/go-saga.svg?branch=master)](https://travis-ci.org/itimofeev/go-saga) [![codecov](https://codecov.io/gh/itimofeev/go-saga/branch/master/graph/badge.svg)](https://codecov.io/gh/itimofeev/go-saga)
 Implements sagas-pattern in go, make distribute transaction easier.
 
 ### Getting started
