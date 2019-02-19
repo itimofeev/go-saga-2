@@ -8,24 +8,24 @@
 package saga
 
 import (
+	"github.com/sirupsen/logrus"
 	"reflect"
 	"time"
 
 	"github.com/itimofeev/go-saga/storage"
 	"golang.org/x/net/context"
-	"log"
-	"os"
 )
 
 const LogPrefix = "saga_"
 
-var Logger *log.Logger
+var Logger *logrus.Logger
 
 func init() {
-	Logger = log.New(os.Stdout, "[Saga]", log.LstdFlags)
+	Logger = logrus.New()
+	Logger.Level = logrus.DebugLevel
 }
 
-func SetLogger(l *log.Logger) {
+func SetLogger(l *logrus.Logger) {
 	Logger = l
 }
 

@@ -69,6 +69,11 @@
 			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
 		},
 		{
+			"ImportPath": "github.com/sirupsen/logrus",
+			"Comment": "v0.11.5-46-g5e5dc89",
+			"Rev": "5e5dc898656f695e2a086b8e12559febbfc01562"
+		},
+		{
 			"ImportPath": "github.com/stretchr/testify/assert",
 			"Comment": "v1.1.4-71-g890a5c3",
 			"Rev": "890a5c3458b43e6104ff5da8dfa139d013d77544"
@@ -85,6 +90,10 @@
 		{
 			"ImportPath": "golang.org/x/net/context",
 			"Rev": "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399"
 		},
 		{
 			"ImportPath": "mellium.im/sasl",
