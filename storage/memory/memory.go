@@ -14,7 +14,7 @@ func New() storage.Storage {
 }
 
 type memStorage struct {
-	data map[string][]string
+	data map[string][]*storage.Log
 }
 
 // NewMemStorage creates log storage base on memory.
@@ -22,23 +22,23 @@ type memStorage struct {
 // NOT use this in product.
 func newMemStorage() (storage.Storage, error) {
 	return &memStorage{
-		data: make(map[string][]string),
+		data: make(map[string][]*storage.Log),
 	}, nil
 }
 
 // AppendLog appends log into queue under given logID.
-func (s *memStorage) AppendLog(logID string, data string) error {
-	logQueue, ok := s.data[logID]
+func (s *memStorage) AppendLog(log *storage.Log) error {
+	logQueue, ok := s.data[log.SagaLogID]
 	if !ok {
-		logQueue = []string{}
-		s.data[logID] = logQueue
+		logQueue = []*storage.Log{}
+		s.data[log.SagaLogID] = logQueue
 	}
-	s.data[logID] = append(s.data[logID], data)
+	s.data[log.SagaLogID] = append(s.data[log.SagaLogID], log)
 	return nil
 }
 
 // Lookup lookups log under given logID.
-func (s *memStorage) Lookup(logID string) ([]string, error) {
+func (s *memStorage) Lookup(logID string) ([]*storage.Log, error) {
 	return s.data[logID], nil
 }
 
@@ -47,29 +47,20 @@ func (s *memStorage) Close() error {
 	return nil
 }
 
-// LogIDs uses to take all Log ID av in current storage
-func (s *memStorage) LogIDs() ([]string, error) {
-	ids := make([]string, 0, len(s.data))
-	for id := range s.data {
-		ids = append(ids, id)
-	}
-	return ids, nil
-}
-
 func (s *memStorage) Cleanup(logID string) error {
 	delete(s.data, logID)
 	return nil
 }
 
-func (s *memStorage) LastLog(logID string) (string, error) {
+func (s *memStorage) LastLog(logID string) (*storage.Log, error) {
 	logData, ok := s.data[logID]
 	if !ok {
 		err := errors.NewErr("LogData %s not found", logID)
-		return "", &err
+		return nil, &err
 	}
 	sizeOfLog := len(logData)
 	if sizeOfLog == 0 {
-		return "", errors.New("LogData is empty")
+		return nil, errors.New("LogData is empty")
 	}
 	lastLog := logData[sizeOfLog-1]
 	return lastLog, nil

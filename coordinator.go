@@ -4,7 +4,6 @@ import (
 	"github.com/itimofeev/go-saga/storage"
 	"golang.org/x/net/context"
 	"reflect"
-	"strconv"
 )
 
 // ExecutionCoordinator presents Saga Execution Coordinator.
@@ -44,9 +43,9 @@ func (e *ExecutionCoordinator) AddSubTxDef(subTxID string, action interface{}, c
 	return e
 }
 
-// MustFindSubTxDef returns sub transaction definition by given subTxID.
+// mustFindSubTxDef returns sub transaction definition by given subTxID.
 // Panic if not found sub-transaction.
-func (e *ExecutionCoordinator) MustFindSubTxDef(subTxID string) subTxDefinition {
+func (e *ExecutionCoordinator) mustFindSubTxDef(subTxID string) subTxDefinition {
 	define, ok := e.subTxDefinitions.findDefinition(subTxID)
 	if !ok {
 		panic("SubTxID: " + subTxID + " not found in context")
@@ -91,12 +90,11 @@ func (e *ExecutionCoordinator) StartCoordinator() error {
 
 // StartSaga start a new saga, returns the saga was started.
 // This method need execute context and UNIQUE id to identify saga instance.
-func (e *ExecutionCoordinator) StartSaga(ctx context.Context, id uint64) *Saga {
+func (e *ExecutionCoordinator) StartSaga(ctx context.Context, id string) *Saga {
 	s := &Saga{
-		id:      id,
 		context: ctx,
 		sec:     e,
-		logID:   LogPrefix + strconv.FormatInt(int64(id), 10),
+		logID:   id,
 		storage: e.storage,
 	}
 	s.startSaga()

@@ -54,7 +54,7 @@ func TestName(t *testing.T) {
 	amount := 100
 	ctx := context.Background()
 
-	var sagaID uint64 = 2
+	sagaID := "hello"
 	saga.StartSaga(ctx, sagaID).
 		ExecSub("deduce", from, amount).
 		ExecSub("deposit", to, amount).
@@ -73,6 +73,7 @@ func TestName2(t *testing.T) {
 	saga := NewSEC(memory.New())
 
 	saga.AddSubTxDef("deduce", DeduceAccount, CompensateDeduce).
+		AddSubTxDef("deduce2", DepositAccount, CompensateDeduce).
 		AddSubTxDef("deposit", DepositAccount, CompensateDeposit)
 
 	// 3. Start a saga to transfer 100 from foo to bar.
@@ -81,12 +82,14 @@ func TestName2(t *testing.T) {
 	amount := 100
 	ctx := context.Background()
 
-	var sagaID uint64 = 2
-	saga.StartSaga(ctx, sagaID).
-		ExecSub("deduce", from, amount).
-		ExecSub("deposit", to, amount).
-		EndSaga()
+	sagaID := "hello"
+	ss := saga.StartSaga(ctx, sagaID)
+
+	ss.ExecSub("deduce", from, amount)
+	ss.ExecSub("deduce2", from, amount)
+	ss.ExecSub("deposit", to, amount)
+	ss.EndSaga()
 
 	//require.Equal(t, 1000, fooAcc)
-	require.Equal(t, 2000, barAcc)
+	require.Equal(t, 2100, barAcc)
 }

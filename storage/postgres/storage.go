@@ -21,9 +21,11 @@ type rmdbStorage struct {
 }
 
 type TXLog struct {
-	LogID      string //`sql:",pk,notnull"`
-	Data       string
+	LogID      string `sql:",pk,notnull"`
+	SubTxID    string `sql:",pk,notnull"`
+	Data       []storage.ParamData
 	CreateTime time.Time
+	Type       storage.LogType `sql:",pk,notnull"`
 }
 
 type hook struct {
@@ -77,21 +79,33 @@ func createSchema(db *pg.DB) error {
 }
 
 // AppendLog appends log into queue under given logID.
-func (s *rmdbStorage) AppendLog(logID string, data string) error {
+func (s *rmdbStorage) AppendLog(log *storage.Log) error {
 	txlog := &TXLog{
-		LogID:      logID,
-		Data:       data,
-		CreateTime: time.Now(),
+		LogID:      log.SagaLogID,
+		SubTxID:    log.SubTxID,
+		Data:       log.Params,
+		CreateTime: log.Time,
+		Type:       log.Type,
 	}
 	return s.db.Insert(txlog)
 }
 
 // Lookup lookups log under given logID.
-func (s *rmdbStorage) Lookup(logID string) (datas []string, err error) {
-	err = s.db.Model((*TXLog)(nil)).
-		ColumnExpr("array_agg(data)").
+func (s *rmdbStorage) Lookup(logID string) (datas []*storage.Log, err error) {
+	var txLogs []*TXLog
+	err = s.db.Model(&txLogs).
 		Where("log_id = ?", logID).
-		Select(pg.Array(&datas))
+		Select()
+
+	for _, txLog := range txLogs {
+		datas = append(datas, &storage.Log{
+			SagaLogID: txLog.LogID,
+			SubTxID:   txLog.SubTxID,
+			Time:      txLog.CreateTime,
+			Type:      txLog.Type,
+			Params:    txLog.Data,
+		})
+	}
 
 	return datas, err
 }
@@ -101,24 +115,27 @@ func (s *rmdbStorage) Close() error {
 	return s.db.Close()
 }
 
-// LogIDs uses to take all TXLog ID av in current storage
-func (s *rmdbStorage) LogIDs() (logIDs []string, err error) {
-	err = s.db.Model((*TXLog)(nil)).
-		ColumnExpr("DISTRINCT(log_id)").
-		Select(pg.Array(&logIDs))
-	return logIDs, err
-}
-
 func (s *rmdbStorage) Cleanup(logID string) error {
-	_, err := s.db.Model((*TXLog)(nil)).Where("log_id = ?", logID).Delete(TXLog{})
+	_, err := s.db.Model((*TXLog)(nil)).Where("log_id = ?", logID).Delete()
 	return err
 }
 
-func (s *rmdbStorage) LastLog(logID string) (data string, err error) {
-	err = s.db.Model((*TXLog)(nil)).
-		ColumnExpr("data").
-		Order("create_time desc").
-		Select(&data)
+func (s *rmdbStorage) LastLog(logID string) (data *storage.Log, err error) {
+	var txLog TXLog
+	err = s.db.Model(&txLog).
+		Where("log_id = ?", logID).
+		Order("create_time DESC").
+		Select()
 
-	return data, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &storage.Log{
+		SagaLogID: txLog.LogID,
+		SubTxID:   txLog.SubTxID,
+		Time:      txLog.CreateTime,
+		Type:      txLog.Type,
+		Params:    txLog.Data,
+	}, nil
 }

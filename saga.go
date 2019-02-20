@@ -8,6 +8,7 @@
 package saga
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"reflect"
 	"time"
@@ -15,8 +16,6 @@ import (
 	"github.com/itimofeev/go-saga/storage"
 	"golang.org/x/net/context"
 )
-
-const LogPrefix = "saga_"
 
 var Logger *logrus.Logger
 
@@ -32,7 +31,6 @@ func SetLogger(l *logrus.Logger) {
 // Saga presents current execute transaction.
 // A Saga constituted by small sub-transactions.
 type Saga struct {
-	id      uint64
 	logID   string
 	context context.Context
 	sec     *ExecutionCoordinator
@@ -40,29 +38,31 @@ type Saga struct {
 }
 
 func (s *Saga) startSaga() {
-	llog := &Log{
-		Type: SagaStart,
-		Time: time.Now(),
+	log := &storage.Log{
+		SagaLogID: s.logID,
+		Type:      storage.SagaStart,
+		Time:      time.Now(),
 	}
-	err := s.storage.AppendLog(s.logID, llog.mustMarshal())
+	err := s.storage.AppendLog(log)
 	if err != nil {
-		panic("Add log Failure")
+		panic(err)
 	}
 }
 
 // ExecSub executes a sub-transaction for given subTxID(which define in SEC initialize) and arguments.
 // it returns current Saga.
 func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
-	subTxDef := s.sec.MustFindSubTxDef(subTxID)
-	log := &Log{
-		Type:    ActionStart,
-		SubTxID: subTxID,
-		Time:    time.Now(),
-		Params:  MarshalParam(s.sec, args),
+	subTxDef := s.sec.mustFindSubTxDef(subTxID)
+	log := &storage.Log{
+		SagaLogID: s.logID,
+		Type:      storage.ActionStart,
+		SubTxID:   subTxID,
+		Time:      time.Now(),
+		Params:    MarshalParam(s.sec, args),
 	}
-	err := s.storage.AppendLog(s.logID, log.mustMarshal())
+	err := s.storage.AppendLog(log)
 	if err != nil {
-		panic("Add log Failure")
+		panic(err)
 	}
 
 	params := make([]reflect.Value, 0, len(args)+1)
@@ -76,31 +76,33 @@ func (s *Saga) ExecSub(subTxID string, args ...interface{}) *Saga {
 		return s
 	}
 
-	log = &Log{
-		Type:    ActionEnd,
-		SubTxID: subTxID,
-		Time:    time.Now(),
+	log = &storage.Log{
+		SagaLogID: s.logID,
+		Type:      storage.ActionEnd,
+		SubTxID:   subTxID,
+		Time:      time.Now(),
 	}
-	err = s.storage.AppendLog(s.logID, log.mustMarshal())
+	err = s.storage.AppendLog(log)
 	if err != nil {
-		panic("Add log Failure")
+		panic(err)
 	}
 	return s
 }
 
 // EndSaga finishes a Saga's execution.
 func (s *Saga) EndSaga() {
-	log := &Log{
-		Type: SagaEnd,
-		Time: time.Now(),
+	log := &storage.Log{
+		SagaLogID: s.logID,
+		Type:      storage.SagaEnd,
+		Time:      time.Now(),
 	}
-	err := s.storage.AppendLog(s.logID, log.mustMarshal())
+	err := s.storage.AppendLog(log)
 	if err != nil {
 		panic("Add log Failure")
 	}
 	err = s.storage.Cleanup(s.logID)
 	if err != nil {
-		panic("Clean up topic failure")
+		panic(err)
 	}
 }
 
@@ -110,34 +112,38 @@ func (s *Saga) EndSaga() {
 func (s *Saga) Abort() {
 	logs, err := s.storage.Lookup(s.logID)
 	if err != nil {
-		panic("Abort Panic")
+		panic(err)
 	}
-	alog := &Log{
-		Type: SagaAbort,
-		Time: time.Now(),
+	log := &storage.Log{
+		SagaLogID: s.logID,
+		Type:      storage.SagaAbort,
+		Time:      time.Now(),
 	}
-	err = s.storage.AppendLog(s.logID, alog.mustMarshal())
+	err = s.storage.AppendLog(log)
 	if err != nil {
 		panic("Add log Failure")
 	}
-	for i := len(logs) - 1; i >= 0; i-- {
-		logData := logs[i]
-		log := mustUnmarshalLog(logData)
-		if log.Type == ActionStart {
-			if err := s.compensate(log); err != nil {
-				panic("Compensate Failure..")
-			}
-		}
-	}
+	fmt.Println(logs)
+	// TODO !!!
+	//for i := len(logs) - 1; i >= 0; i-- {
+	//	logData := logs[i]
+	//	log := mustUnmarshalLog(logData)
+	//	if log.Type == ActionStart {
+	//		if err := s.compensate(log); err != nil {
+	//			panic("Compensate Failure..")
+	//		}
+	//	}
+	//}
 }
 
-func (s *Saga) compensate(tlog Log) error {
-	clog := &Log{
-		Type:    CompensateStart,
-		SubTxID: tlog.SubTxID,
-		Time:    time.Now(),
+func (s *Saga) compensate(tlog *storage.Log) error {
+	clog := &storage.Log{
+		SagaLogID: s.logID,
+		Type:      storage.CompensateStart,
+		SubTxID:   tlog.SubTxID,
+		Time:      time.Now(),
 	}
-	err := s.storage.AppendLog(s.logID, clog.mustMarshal())
+	err := s.storage.AppendLog(clog)
 	if err != nil {
 		panic("Add log Failure")
 	}
@@ -148,18 +154,19 @@ func (s *Saga) compensate(tlog Log) error {
 	params = append(params, reflect.ValueOf(s.context))
 	params = append(params, args...)
 
-	subDef := s.sec.MustFindSubTxDef(tlog.SubTxID)
+	subDef := s.sec.mustFindSubTxDef(tlog.SubTxID)
 	result := subDef.compensate.Call(params)
 	if isReturnError(result) {
-		s.Abort()
+		panic(result)
 	}
 
-	clog = &Log{
-		Type:    CompensateEnd,
-		SubTxID: tlog.SubTxID,
-		Time:    time.Now(),
+	clog = &storage.Log{
+		SagaLogID: s.logID,
+		Type:      storage.CompensateEnd,
+		SubTxID:   tlog.SubTxID,
+		Time:      time.Now(),
 	}
-	err = s.storage.AppendLog(s.logID, clog.mustMarshal())
+	err = s.storage.AppendLog(clog)
 	if err != nil {
 		panic("Add log Failure")
 	}
