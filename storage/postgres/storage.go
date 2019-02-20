@@ -5,6 +5,7 @@ import (
 	"github.com/go-pg/pg"
 	"github.com/go-pg/pg/orm"
 	"github.com/itimofeev/go-saga/storage"
+	"os"
 	"time"
 )
 
@@ -44,7 +45,12 @@ func (*hook) AfterQuery(*pg.QueryEvent) {
 
 // newRmdbStorage creates log storage base on rmdb.
 func newRmdbStorage() (storage.Storage, error) {
-	opts, err := pg.ParseURL("postgresql://postgres:@db:5432/postgres?sslmode=disable")
+	dbAddr := os.Getenv("DB_ADDR")
+	if len(dbAddr) == 0 {
+		dbAddr = "postgresql://postgres@db:5432/postgres?sslmode=disable"
+	}
+
+	opts, err := pg.ParseURL(dbAddr)
 	if err != nil {
 		return nil, err
 	}
